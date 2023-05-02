@@ -1,4 +1,4 @@
-import { SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
+import { SignInButton, useUser } from "@clerk/nextjs";
 import { type NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
@@ -7,12 +7,24 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { api } from "~/utils/api";
 import type { RouterOutputs } from "~/utils/api";
 import { LoaderPage } from "~/components/Loader";
+import { useState } from "react";
 
 dayjs.extend(relativeTime);
 const CreatePostWizard = () => {
-  const { user } = useUser();
-  if (!user) return null;
+  const [input, setInput] = useState<string>("");
 
+  const { user } = useUser();
+  const ctx = api.useContext();
+  const { mutate, isLoading: isPosting } = api.posts.createPost.useMutation({
+    onSuccess: async () => {
+      //Reset input on success
+      setInput("");
+
+      await ctx.posts.getPosts.invalidate();
+    },
+  });
+
+  if (!user) return null;
   return (
     <div className="flex w-full gap-3">
       <Image
@@ -25,7 +37,15 @@ const CreatePostWizard = () => {
       <input
         placeholder="Type some emojis!"
         className="grow bg-transparent outline-none"
+        value={input}
+        type="text"
+        onChange={(e) => setInput(e.target.value)}
+        disabled={isPosting}
       ></input>
+      <button onClick={() => mutate({ content: input })} className="btn">
+        {" "}
+        Post{" "}
+      </button>
     </div>
   );
 };
@@ -46,7 +66,7 @@ const PostView = (props: PostWithUser) => {
         <div className="flex gap-1 text-slate-400">
           {`@${author.username}`}·<span>{dayjs(post.createdAt).fromNow()}</span>
         </div>
-        <span>{post.content}</span>
+        <span className="text-2xl">{post.content}</span>
       </div>
     </div>
   );
