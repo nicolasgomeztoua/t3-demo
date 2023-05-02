@@ -6,7 +6,9 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { api } from "~/utils/api";
 import type { RouterOutputs } from "~/utils/api";
+import { LoaderPage } from "~/components/Loader";
 
+dayjs.extend(relativeTime);
 const CreatePostWizard = () => {
   const { user } = useUser();
   if (!user) return null;
@@ -27,7 +29,7 @@ const CreatePostWizard = () => {
     </div>
   );
 };
-dayjs.extend(relativeTime);
+
 type PostWithUser = RouterOutputs["posts"]["getPosts"][number];
 const PostView = (props: PostWithUser) => {
   const { post, author } = props;
@@ -50,11 +52,31 @@ const PostView = (props: PostWithUser) => {
   );
 };
 
+const Feed = () => {
+  const { data: allPosts, isLoading: isPostsLoading } =
+    api.posts.getPosts.useQuery();
+
+  if (isPostsLoading) return <LoaderPage />;
+
+  if (!allPosts) return <h1>Something went wrong</h1>;
+
+  return (
+    <div className="flex flex-col">
+      {allPosts.map((fullPost) => (
+        <PostView {...fullPost} key={fullPost.post.id} />
+      ))}
+    </div>
+  );
+};
+
 const Home: NextPage = () => {
-  const { data: allPosts, isLoading } = api.posts.getPosts.useQuery();
-  const user = useUser();
-  if (isLoading) return <div>Loading ...</div>;
-  if (!allPosts) return <div>No Data</div>;
+  //Start fetching data early
+  api.posts.getPosts.useQuery();
+  const { isLoaded: isUserLoaded, isSignedIn } = useUser();
+
+  //Return an empty div if user isint loaded
+  if (!isUserLoaded) return <div />;
+
   return (
     <>
       <Head>
@@ -65,21 +87,17 @@ const Home: NextPage = () => {
       <main className="flex h-screen justify-center">
         <div className="h-full w-full border-x border-slate-200 md:max-w-2xl">
           <div className="flex border-b border-slate-400 p-4">
-            {!!user.isSignedIn && <SignOutButton />}
-            {!user.isSignedIn && (
+            {!isSignedIn && (
               <div className="flex justify-center">
                 <SignInButton mode="modal">
                   <button className="btn">Sign in</button>
                 </SignInButton>
               </div>
-            )}
+            )}{" "}
+            {isSignedIn && <CreatePostWizard></CreatePostWizard>}
           </div>
-          {user.isSignedIn && <CreatePostWizard></CreatePostWizard>}
-          <div className="flex flex-col">
-            {allPosts.map((fullPost) => (
-              <PostView {...fullPost} key={fullPost.post.id} />
-            ))}
-          </div>
+
+          <Feed />
         </div>
       </main>
     </>
