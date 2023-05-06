@@ -9,6 +9,7 @@ import type { RouterOutputs } from "~/utils/api";
 import { Loader, LoaderPage } from "~/components/Loader";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
+import Link from "next/link";
 
 dayjs.extend(relativeTime);
 const CreatePostWizard = () => {
@@ -89,7 +90,10 @@ const PostView = (props: PostWithUser) => {
       ></Image>
       <div className="flex flex-col">
         <div className="flex gap-1 text-slate-400">
-          {`@${author.username}`}·<span>{dayjs(post.createdAt).fromNow()}</span>
+          <Link href={`/@${author.username}`}>{`@${author.username}`} </Link> ·
+          <Link href={post.id}>
+            <span>{dayjs(post.createdAt).fromNow()}</span>
+          </Link>
         </div>
         <span className="text-2xl">{post.content}</span>
       </div>
