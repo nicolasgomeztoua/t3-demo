@@ -7,13 +7,23 @@ import { prisma } from "~/server/db";
 import superjson from "superjson";
 import { PageLayout } from "~/components/Layout";
 import Image from "next/image";
+import { LoaderPage } from "~/components/Loader";
+
+const ProfileFeed = (props: { userId: string }) => {
+  const { data, isLoading } = api.posts.getPostsByUserId.useQuery({
+    userId: props.userId,
+  });
+  if (!data || data.length === 0)
+    return <div className="p-4">No posts yet</div>;
+  if (isLoading) return <LoaderPage />;
+};
 
 const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
   const { data } = api.profiles.getUserByUsername.useQuery({
     username,
   });
 
-  if (!data) return <div>404 User not found</div>;
+  if (!data) return <div>404 User not found testing preview</div>;
   return (
     <>
       <Head>
