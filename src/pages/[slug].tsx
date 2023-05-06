@@ -23,7 +23,7 @@ const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
     username,
   });
 
-  if (!data) return <div>404 User not found testing preview</div>;
+  if (!data) return <div>404 User not found testing</div>;
   return (
     <>
       <Head>
