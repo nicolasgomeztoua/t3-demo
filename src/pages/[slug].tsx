@@ -9,10 +9,6 @@ import { PageLayout } from "~/components/Layout";
 import Image from "next/image";
 import { LoaderPage } from "~/components/Loader";
 import { PostView } from "~/components/PostView";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-
-dayjs.extend(relativeTime);
 
 const ProfileFeed = (props: { userId: string }) => {
   const { data, isLoading } = api.posts.getPostsByUserId.useQuery({
